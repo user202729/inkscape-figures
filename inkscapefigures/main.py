@@ -6,6 +6,7 @@ import logging
 import subprocess
 import textwrap
 import warnings
+import time
 from pathlib import Path
 from shutil import copy
 from daemonize import Daemonize
@@ -128,7 +129,13 @@ def maybe_recompile_figure(filepath):
     pdf_path = filepath.parent / (filepath.stem + '.pdf')
     name = filepath.stem
 
-    inkscape_version = subprocess.check_output(['inkscape', '--version'], universal_newlines=True)
+    try:
+        inkscape_version = subprocess.check_output(['inkscape', '--version'], universal_newlines=True)
+    except subprocess.CalledProcessError:
+        log.info('inkscape --version failed, retry later')
+        time.sleep(5)
+        return maybe_recompile_figure(filepath)
+
     log.debug(inkscape_version)
 
     # Convert
